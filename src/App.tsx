@@ -24,7 +24,7 @@ export type CartITemType = {
   amount: number;
 };
 
-const url = "https://fakestoreapi.com/products/";
+const url = "https://fakestoreapi.com/products";
 
 const getProducts = async (): Promise<CartITemType[]> => {
   return await (await fetch(url)).json();
@@ -42,9 +42,38 @@ const App = () => {
   const getTotalItems = (items: CartITemType[]) =>
     items.reduce((ack: number, item) => ack + item.amount, 0);
 
-  const handleAddToCart = (clickedItem: CartITemType) => null;
+  const handleAddToCart = (clickedItem: CartITemType) => {
+    setCartItems((prev) => {
+      //1. is the item already added in cart?
+      const isItemInCart = prev.find((item) => item.id === clickedItem.id);
 
-  const handleRemoveFromCart = () => null;
+      //2. if is item in cart:
+      if (isItemInCart) {
+        return prev.map((item) =>
+          item.id === clickedItem.id
+            ? { ...item, amount: item.amount + 1 }
+            : item
+        );
+      }
+      //3.first time the item is added.
+      return [...prev, { ...clickedItem, amount: 1 }];
+    });
+  };
+
+  const handleRemoveFromCart = (id: number) => {
+    setCartItems((prev) =>
+      prev.reduce((ack, item) => {
+        if (item.id === id) {
+          if (item.amount === 1) {
+            return ack;
+          }
+          return [...ack, { ...item, amount: item.amount - 1 }];
+        } else {
+          return [...ack, item];
+        }
+      }, [] as CartITemType[])
+    );
+  };
 
   if (isLoading) return <LinearProgress />;
 
